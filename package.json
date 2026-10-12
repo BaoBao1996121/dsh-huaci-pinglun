@@ -1,0 +1,25 @@
+{
+  "name": "dsh-huaci-pinglun",
+  "version": "0.1.0",
+  "description": "dsh划词评论：在 DSH 中选中文字，评论或添加到对话；修复引用框裁字。dsh-huaci-pinglun",
+  "icon": "icon.svg",
+  "license": "MIT",
+  "author": "BangBang-03",
+  "contributors": [{ "name": "BaoBao1996121", "url": "https://github.com/BaoBao1996121" }],
+  "repository": { "type": "git", "url": "git+https://github.com/BaoBao1996121/dsh-huaci-pinglun.git" },
+  "homepage": "https://github.com/BaoBao1996121/dsh-huaci-pinglun#readme",
+  "bugs": { "url": "https://github.com/BaoBao1996121/dsh-huaci-pinglun/issues" },
+  "keywords": ["dsh划词评论", "dsh-huaci-pinglun", "dsh-plugin", "deepseek-harness", "quote", "selection", "comment"],
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": { "dsh": ">=0.2.0-rc.2", "node": ">=18" },
+  "publishConfig": { "access": "public" },
+  "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json", "./locale/*.json": "./locale/*.json" },
+  "files": ["icon.svg", "lib", "locale", "test", "cordis.patch.yml", "README.md", "LICENSE", "UPSTREAM.md", "CHANGELOG.md", "LOCAL-FIX.md"],
+  "scripts": {
+    "test": "node test/check.mjs && node test/capsule.mjs && node test/panel.mjs",
+    "test:browser": "node test/browser.mjs",
+    "prepublishOnly": "node test/check.mjs && node test/capsule.mjs && node test/panel.mjs"
+  },
+  "dsh": { "manifestVersion": 1, "bundle": { "patch": "./cordis.patch.yml" }, "client": { "platform": "web" } }
+}

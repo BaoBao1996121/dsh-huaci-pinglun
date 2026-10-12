@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "dsh划词评论 / Selection comments",
+    "description": "Select text to comment or quote into the current draft. Edit the quote, expand multiple lines, and scroll long quotes. Nothing is sent automatically. A MIT-derived layout fix for BangBang-03/dsh-client-ui-quote 0.11.1. Search alias: dsh-huaci-pinglun."
+  }
+}

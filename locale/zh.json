@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "dsh划词评论",
+    "description": "选中文字，写评论或添加到当前会话草稿；引用正文可编辑，多行自动增高，长文可滚动，不替你发送。基于 BangBang-03/dsh-client-ui-quote 0.11.1 的 MIT 修补分支。检索别名：dsh-huaci-pinglun。"
+  }
+}

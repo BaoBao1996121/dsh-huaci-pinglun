@@ -1,0 +1,22 @@
+name: Test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Registration and behavior tests
+        run: npm test
+      - name: Real browser regressions
+        env:
+          DSH_TEST_CHROME: /usr/bin/google-chrome
+        run: npm run test:browser

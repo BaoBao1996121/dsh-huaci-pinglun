@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8"><title>Quote layout regression</title>
+<style>body{font:14px/1.5 Arial,sans-serif;background:#fff;color:#222;padding:24px;}#anchor{width:450px;height:25px;margin-top:30px}</style>
+<div id="anchor">隔离测试：引用框在首次打开时应完整显示文字。</div><pre id="results">RUNNING</pre>
+<script>window.__ModuleLoader__={load(spec){window.spec=spec;}};</script>
+<script src="../../lib/client.js"></script>
+<script>
+(async()=>{
+const checks=[], insertions=[], commands=[], effects=[], registered=[];
+const check=(name,ok,detail)=>checks.push({name,ok,detail});
+try {
+const api=spec.factory(name=>{if(name==='react')return {useRef:value=>({current:value}),useEffect:fn=>fn()};throw Error(name);});
+const shell={insertReference(attachment){insertions.push(attachment);return true;}};
+const ctx={effect(fn){const stop=fn();if(typeof stop==='function')effects.push(stop);return()=>{};},locale:{register(){return()=>{};}},get(name){
+if(name==='inputTriggers')return {registerSource(){return()=>{};}};
+if(name==='conversation')return {input:{shell:()=>shell}};
+if(name==='shortcuts')return {register(c){commands.push(c);return()=>{};}};
+return undefined;},slots:{inject(name,fn){fn();return()=>{};},register(spec,Component){registered.push({spec,Component});return()=>{};}}};
+api.apply(ctx);
+registered.find(e=>e.spec.name==='conversation.input.overlay').Component({sessionId:'layout-test',inputActions:{captureInsertion:()=>({draftRev:1})}});
+const t=api.__testing, anchor=document.getElementById('anchor');
+const metrics=node=>{const s=getComputedStyle(node);return {height:node.getBoundingClientRect().height,clientHeight:node.clientHeight,scrollHeight:node.scrollHeight,lineHeight:parseFloat(s.lineHeight),padding:parseFloat(s.paddingTop)+parseFloat(s.paddingBottom),overflow:s.overflowY};};
+const visible=m=>m.clientHeight>=m.lineHeight+m.padding-1;
+function measure(quote,comment,label){
+t.startRevision(quote,comment,'layout-test',anchor,false);
+const q=document.querySelector('.dshq-quote-input'),c=document.querySelector('.dshq-comment-input');
+const qm=metrics(q),cm=metrics(c);
+check(label+' quote has a full line',visible(qm),qm);
+check(label+' comment has a full line',visible(cm),cm);
+if(qm.scrollHeight<=160)check(label+' quote not clipped',qm.scrollHeight<=qm.clientHeight+1,qm);
+return {q,c,qm,cm};
+}
+measure('选中一段回复文字。','','first open');
+measure('第一行引用\n第二行引用\n第三行引用','第一行评论\n第二行评论','multiline reopen');
+const long=measure(Array.from({length:30},(_,i)=>'第'+i+'行完整引用').join('\n'),'评论','long quote');
+check('long quote capped at 160px',long.qm.height<=160.5,long.qm);
+check('long quote can scroll',long.qm.overflow==='auto'||long.qm.overflow==='scroll',long.qm);
+const last=measure('原文保留','请检查这句话','comment action');
+last.c.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true}));
+check('IME Enter never commits',insertions.length===0,insertions.length);
+document.querySelector('[data-action="confirm"]').click();
+check('confirm inserts one draft reference',insertions.length===1,insertions.length);
+check('reference preserves quote and comment',insertions[0]?.ref.includes('原文保留')&&insertions[0]?.ref.includes('请检查这句话'),insertions[0]?.ref);
+measure('取消的引用','取消的评论','cancel action');
+document.querySelector('[data-action="cancel"]').click();
+check('cancel does not insert',insertions.length===1,insertions.length);
+} catch(error){checks.push({name:'fixture execution',ok:false,detail:String(error.stack||error)});}
+const failed=checks.filter(c=>!c.ok);document.body.dataset.status=failed.length?'FAIL':'PASS';
+document.getElementById('results').textContent=JSON.stringify({status:failed.length?'FAIL':'PASS',checks},null,2);
+})();
+</script>

@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>Selection entry regression</title>
+<style>body{font:14px/1.5 Arial,sans-serif;background:#fff;color:#222;padding:24px;}[data-conversation-content]{padding:20px;width:500px;margin-top:30px}</style>
+<div data-conversation-content data-conversation-session="selection-test"><p id="selected">选中一段回复文字，测试浮层与评论入口。</p></div><pre id="results">RUNNING</pre>
+<script>window.__ModuleLoader__={load(spec){window.spec=spec;}};</script><script src="../../lib/client.js"></script>
+<script>
+(async()=>{
+const checks=[],insertions=[],registered=[],commands=[];
+const check=(name,ok,detail)=>checks.push({name,ok,detail});
+try{
+const api=spec.factory(name=>{if(name==='react')return {useRef:v=>({current:v}),useEffect:fn=>fn()};throw Error(name);});
+const ctx={effect(fn){fn();return()=>{};},locale:{register(){return()=>{};}},get(name){if(name==='inputTriggers')return {registerSource(){return()=>{};}};if(name==='conversation')return {input:{shell:()=>({insertReference(a){insertions.push(a);return true;}})}};if(name==='shortcuts')return {register(c){commands.push(c);return()=>{};}};return undefined;},slots:{inject(name,fn){fn();return()=>{};},register(spec,Component){registered.push({spec,Component});return()=>{};}}};
+api.apply(ctx);const entry=registered.find(x=>x.spec.name==='conversation.input.overlay');entry.Component({sessionId:'selection-test',inputActions:{captureInsertion:()=>({draftRev:1})}});
+check('selection session registered',api.__testing.activeSessions().includes('selection-test'),api.__testing.activeSessions());
+const selected=document.getElementById('selected');selected.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0}));
+const range=document.createRange();range.selectNodeContents(selected);const selection=document.getSelection();selection.removeAllRanges();selection.addRange(range);selected.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,button:0}));
+const bar=document.getElementById('dsh-quote-bar');check('pointer selection opens menu',bar?.dataset.visible==='true'&&bar?.getAttribute('role')==='menu',{visible:bar?.dataset.visible,role:bar?.getAttribute('role')});
+check('menu has quote and comment',!!bar?.querySelector('[data-action="add"]')&&!!bar?.querySelector('[data-action="comment"]'));
+bar?.querySelector('[data-action="comment"]')?.click();
+const q=bar?.querySelector('.dshq-quote-input'),c=bar?.querySelector('.dshq-comment-input');
+check('comment action opens dialog',bar?.getAttribute('role')==='dialog',bar?.getAttribute('role'));
+check('selected quote preserved',q?.value===selected.textContent,q?.value);
+check('quote readable',q?.clientHeight>=30,{client:q?.clientHeight,scroll:q?.scrollHeight});
+c.value='请解释这段';c.dispatchEvent(new Event('input',{bubbles:true}));bar.querySelector('[data-action="confirm"]').click();
+check('confirm only inserts one draft quote',insertions.length===1,insertions.length);
+check('inserted quote and comment preserved',insertions[0]?.ref.includes(selected.textContent)&&insertions[0]?.ref.includes('请解释这段'),insertions[0]?.ref);
+selected.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0}));selection.removeAllRanges();selection.addRange(range);selected.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,button:0}));
+check('selection reopens after confirmation',bar.dataset.visible==='true'&&bar.getAttribute('role')==='menu');
+} catch(error){checks.push({name:'fixture execution',ok:false,detail:String(error.stack||error)});}
+const failed=checks.filter(x=>!x.ok);document.body.dataset.status=failed.length?'FAIL':'PASS';document.getElementById('results').textContent=JSON.stringify({status:failed.length?'FAIL':'PASS',checks},null,2);
+})();
+</script>
